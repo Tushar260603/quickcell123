@@ -1,48 +1,58 @@
-import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import TaskCard from './Card';
+import React, { useEffect, useMemo, useState } from "react";
+import styled from "styled-components";
+import TaskCard from "./Card";
 
-import img4 from "../images/4.svg"
-import img3 from "../images/3.svg"
-import img2 from "../images/2.svg"
-import img1 from "../images/1.svg"
-import img0 from "../images/No-priority.svg"
+import img4 from "../images/4.svg";
+import img3 from "../images/3.svg";
+import img2 from "../images/2.svg";
+import img1 from "../images/1.svg";
+import img0 from "../images/No-priority.svg";
 
-import menu from '../images/menu.svg'
-import Add from '../images/add.svg'
+import menu from "../images/menu.svg";
+import Add from "../images/add.svg";
+
+const API_URL =
+  "https://api.quicksell.co/v1/internal/frontend-assignment";
+
+const PRIORITY_CONFIG = {
+  0: {
+    label: "No Priority",
+    image: img0,
+  },
+  1: {
+    label: "Low",
+    image: img1,
+  },
+  2: {
+    label: "Medium",
+    image: img2,
+  },
+  3: {
+    label: "High",
+    image: img3,
+  },
+  4: {
+    label: "Urgent",
+    image: img4,
+  },
+};
+
+const PRIORITIES = [0, 1, 2, 3, 4];
 
 const Wrapper = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Center vertically in the viewport */
-  background-color: #f4f5f9; /* Background color */
+  min-height: 100vh;
+  background-color: #f4f5f9;
   padding: 20px;
-`;
-
-const Container = styled.div`
-  font-family: Arial, sans-serif;
-  background-color: #ffffff;
-  width: 100%;
-  max-width: 1200px; /* Adjust the max-width as needed */
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-`;
-
-const Header = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 10px 20px;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
 `;
 
 const Board = styled.div`
   display: flex;
   padding: 20px;
   gap: 20px;
-  flex-wrap: wrap; /* Allows the columns to wrap in case of small screens */
+  flex-wrap: wrap;
 `;
 
 const Column = styled.div`
@@ -58,52 +68,26 @@ const Column = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
 
-    .count {
-      background-color: #e0e0e0;
-      border-radius: 50%;
-      padding: 5px 10px;
-      font-size: 12px;
-    }
+  .count {
+    background-color: #e0e0e0;
+    border-radius: 50%;
+    padding: 5px 10px;
+    font-size: 12px;
   }
 `;
 
-const Task = styled.div`
-  background-color: #f9f9f9;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 10px;
-  margin-bottom: 10px;
+const PriorityHeader = styled.div`
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 4px;
+`;
 
-  .task-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .task-id {
-      font-weight: bold;
-    }
-
-    .avatar {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background-color: #e0e0e0;
-    }
-  }
-
-  .task-title {
-    font-size: 14px;
-    margin: 0;
-  }
-
-  .task-type {
-    font-size: 12px;
-    color: #888888;
-  }
+const HeaderActions = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-right: 5px;
 `;
 
 const PriorT = () => {
@@ -112,28 +96,47 @@ const PriorT = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchTasks = async () => {
+      setLoading(true);
+      setError(null);
+
       try {
-        const response = await fetch('https://api.quicksell.co/v1/internal/frontend-assignment');
+        const response = await fetch(API_URL);
+
+        if (!response.ok) {
+          throw new Error(
+            `API request failed with status ${response.status}`
+          );
+        }
+
         const data = await response.json();
 
-        // Log the fetched data for debugging
-        console.log('Fetched Data:', data);
+        console.log("AI Review - Fetched Data:", data);
 
-        // Update the state with fetched data
+        if (!Array.isArray(data.tickets)) {
+          throw new Error(
+            "Invalid API response: tickets must be an array"
+          );
+        }
+
         setTasks(data.tickets);
-      } catch (error) {
-        setError('Error fetching data.');
-        console.error('Error fetching data:', error);
+
+        console.log(
+          "AI Review - Total Tasks:",
+          data.tickets.length
+        );
+      } catch (err) {
+        console.error("AI Review - Fetch Error:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    fetchTasks();
   }, []);
 
-  const groupTasksByPriority = () => {
+  const groupedTasksByPriority = useMemo(() => {
     const priorityGroups = {
       0: [],
       1: [],
@@ -142,69 +145,84 @@ const PriorT = () => {
       4: [],
     };
 
-    console.log(groupTasksByPriority)
-    tasks.forEach(task => {
-      if (priorityGroups[task.priority] !== undefined) {
-        priorityGroups[task.priority].push(task);
+    tasks.forEach((task) => {
+      const priority = task.priority;
+
+      if (priorityGroups[priority]) {
+        priorityGroups[priority].push(task);
       }
     });
 
+    Object.keys(priorityGroups).forEach((priority) => {
+      priorityGroups[priority].sort((a, b) =>
+        a.title.localeCompare(b.title)
+      );
+    });
+
+    console.log(
+      "AI Review - Grouped Tasks:",
+      priorityGroups
+    );
+
     return priorityGroups;
+  }, [tasks]);
+
+  const renderPriorityHeader = (priority) => {
+    const config = PRIORITY_CONFIG[priority];
+
+    return (
+      <PriorityHeader>
+        <img
+          src={config.image}
+          alt={config.label}
+          width="16"
+          height="16"
+        />
+        <span>{config.label}</span>
+      </PriorityHeader>
+    );
   };
 
-  const groupedTasksByPriority = groupTasksByPriority();
-
-  // Sort tasks by title within each priority level
-  Object.keys(groupedTasksByPriority).forEach(priority => {
-    groupedTasksByPriority[priority].sort((a, b) => a.title.localeCompare(b.title));
-  });
-
-  const renderimg=(priority)=>{
-    if(priority===0){
-      return (<div style={{display:"flex"}}><img src={img0} alt=''  /> <p>No Priority</p>  </div>)
-    }
-    else  if(priority===1){
-      return (<div style={{display:"flex" }}><img src={img1} alt=''  /> <p style={{marginLeft:"4px"}}>Low</p>  </div>)
-    }
-    else  if(priority===2){
-      return (<div style={{display:"flex" }}><img src={img2} alt=''  /> <p style={{marginLeft:"4px"}}>Medium</p>  </div>)
-    }
-    else  if(priority===3){
-      return (<div style={{display:"flex" }}><img src={img3} alt=''  /> <p style={{marginLeft:"4px"}}>High</p>  </div>)
-    }
-    else  if(priority===4){
-      return (<div style={{display:"flex" }}><img src={img4} alt=''  /> <p style={{marginLeft:"4px"}}>Urgent</p>  </div>)
-    }
-    
+  if (loading) {
+    return <div>Loading tasks...</div>;
   }
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (error) {
+    return <div>Error loading tasks: {error}</div>;
+  }
 
   return (
     <Wrapper>
-        <Board>
-          {/* Render columns for each priority level from 0 to 4 */}
-          {[0, 1, 2, 3, 4].map(priority => (
+      <Board>
+        {PRIORITIES.map((priority) => {
+          const priorityTasks =
+            groupedTasksByPriority[priority];
+
+          return (
             <Column key={priority}>
               <h2>
-                {
-renderimg(priority)
+                {renderPriorityHeader(priority)}
 
-                }
-                <span className="count">{groupedTasksByPriority[priority].length}</span>
-                <div style={{display:'flex', marginRight:'5px'}}>
-                  <img src={Add} alt=''/>
-                  <img src={menu} alt=''/>
-                </div>
+                <span className="count">
+                  {priorityTasks.length}
+                </span>
 
+                <HeaderActions>
+                  <img src={Add} alt="Add task" />
+                  <img src={menu} alt="More options" />
+                </HeaderActions>
               </h2>
-              {groupedTasksByPriority[priority].map(task => (
-                <TaskCard key={task.id} task={task} />
+
+              {priorityTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                />
               ))}
             </Column>
-          ))}
-        </Board>
+          );
+        })}
+      </Board>
     </Wrapper>
   );
 };
