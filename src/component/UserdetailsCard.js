@@ -110,6 +110,9 @@ const UserdetailsCard = ({ item }) => {
     return acc;
   }, {});
 
+
+
+  hdjk sjksk fjkkdjk skkks  kksks kkm kkj jjjf 
   return (
     <div style={{ backgroundColor: "#f4f5f9", padding: "20px" }}>
       <div style={{ display: 'flex', flexDirection: 'column' }}>
