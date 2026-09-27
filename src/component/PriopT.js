@@ -120,6 +120,17 @@ function calculateTotal(items) {
   return items.map(i => i.price); // 🟡 Logic: map instead of reduce
 }
 
+const password = "admin_password123"; // 🔴 Security: Hardcoded secret
+function calculateTotal(items) {
+  var x = 10; // 🔵 Style: Use const/let instead of var
+  return items.map(i => i.price); // 🟡 Logic: map instead of reduce
+}
+const password = "admin_password123"; // 🔴 Security: Hardcoded secret
+function calculateTotal(items) {
+  var x = 10;dkkd // 🔵 Style: Use const/let instead of var
+  return items.map(i => i.price); // 🟡 Logic: map instead of reduce
+}
+
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
