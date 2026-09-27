@@ -95,6 +95,13 @@ const PriorT = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+// Example test code with intentional issues
+const password = "admin_password123"; // 🔴 Security: Hardcoded secret
+function calculateTotal(items) {
+  var x = 10; // 🔵 Style: Use const/let instead of var
+  return items.map(i => i.price); // 🟡 Logic: map instead of reduce
+}
+
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
