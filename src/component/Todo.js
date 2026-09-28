@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import TaskCard from './Card';
 
 
-import todo from "../images/todo.svg"
+
 import canceled from "../images/Cancelled.svg"
 import progress from "../images/progress.svg"
 import backlog from "../images/Backlog.svg"
